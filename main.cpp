@@ -83,8 +83,8 @@ int main(int argc, char** argv)
                 {
                     float px = float(x) / float(c_2DImageWidth - 1);
 
-                    float re = (cosf(0.0f) + cosf(2.0f * c_pi * float(hz) * px) + cosf(2.0f * c_pi * float(hz) * py)) / 2.0f;
-                    float im = (sinf(0.0f) + sinf(2.0f * c_pi * float(hz) * px) + sinf(2.0f * c_pi * float(hz) * py)) / 2.0f;
+                    float re = (cosf(0.0f) + cosf(2.0f * c_pi * float(hz) * px) + cosf(2.0f * c_pi * float(hz) * py)) / 3.0f;
+                    float im = (sinf(0.0f) + sinf(2.0f * c_pi * float(hz) * px) + sinf(2.0f * c_pi * float(hz) * py)) / 3.0f;
 
                     float mag = sqrtf(re * re + im * im);
                     unsigned char magc = (unsigned char)Clamp(mag * 256.0f, 0.0f, 255.0f);
