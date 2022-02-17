@@ -12,7 +12,7 @@ static const size_t c_1DImageHeight = 10;
 static const size_t c_1DImagePaddingX = 1;
 static const size_t c_1DImagePaddingY = 1;
 
-static const size_t c_2DMaxHz = 10;
+static const size_t c_2DMaxHz = 11;
 static const size_t c_2DImageWidth = 100;
 static const size_t c_2DImageHeight = 100;
 static const size_t c_2DImagePaddingX = 1;
@@ -64,14 +64,17 @@ int main(int argc, char** argv)
 
     // make the 2d image
     {
-        const size_t c_actualImageWidth = c_2DImageWidth + c_2DImagePaddingX * 2;
-        const size_t c_actualImageHeight = c_2DImageHeight * (c_2DMaxHz + 1) + (c_2DMaxHz + 2) * c_2DImagePaddingY;
+        int cellsx = int(ceilf(sqrtf(c_2DMaxHz + 1)));
+        int cellsy = int(ceilf(float(c_2DMaxHz + 1) / float(cellsx)));
+
+        const size_t c_actualImageWidth = cellsx * (c_2DImageWidth + c_2DImagePaddingX) + c_2DImagePaddingX;
+        const size_t c_actualImageHeight = cellsy * (c_2DImageHeight + c_2DImagePaddingY) + c_2DImagePaddingY;
         std::vector<unsigned char> pixels(c_actualImageWidth * c_actualImageHeight, 0);
 
+        // render this image
+        std::vector<unsigned char> pixelsTemp(c_2DImageWidth * c_2DImageHeight, 0);
         for (size_t hz = 0; hz <= c_2DMaxHz; ++hz)
         {
-            size_t imageStart = (hz * (c_2DImageHeight + c_2DImagePaddingY) + c_2DImagePaddingY) * c_actualImageWidth;
-
             for (size_t y = 0; y < c_2DImageHeight; ++y)
             {
                 float py = float(y) / float(c_2DImageHeight - 1);
@@ -86,9 +89,17 @@ int main(int argc, char** argv)
                     float mag = sqrtf(re * re + im * im);
                     unsigned char magc = (unsigned char)Clamp(mag * 256.0f, 0.0f, 255.0f);
 
-                    pixels[imageStart + y * c_actualImageWidth + x + c_2DImagePaddingX] = magc;
+                    pixelsTemp[y * c_2DImageWidth + x] = magc;
                 }
             }
+
+            // paste this image onto the output one
+            int cellx = int(hz % cellsx);
+            int celly = int(hz / cellsx);
+            int startx = cellx * (c_2DImageWidth + c_2DImagePaddingX) + c_2DImagePaddingX;
+            int starty = celly * (c_2DImageHeight + c_2DImagePaddingY) + c_2DImagePaddingY;
+            for (size_t y = 0; y < c_2DImageHeight; ++y)
+                memcpy(&pixels[(starty + y) * c_actualImageWidth + startx], &pixelsTemp[y * c_2DImageWidth], c_2DImageWidth);
         }
         stbi_write_png("out/2d.png", (int)c_actualImageWidth, (int)c_actualImageHeight, 1, pixels.data(), 0);
 
